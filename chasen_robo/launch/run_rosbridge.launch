@@ -1,0 +1,14 @@
+<launch>
+
+ <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > 
+   <arg name="port" value="9090"/>
+ </include>
+
+
+ <node pkg="robo_rot" type="robo_rot_node" name="robo_rot">
+    <param name="serial_port" value="/dev/tty_arduino" />
+  </node>
+
+
+</launch>
+

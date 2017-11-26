@@ -2,11 +2,11 @@
 # Makefile for building: ROS_module
 #############################################################################
 
-CXX      = g++ -std=c++0x
-LINK     = g++ -std=c++0x 
+CXX      = g++
+LINK     = g++
 CXXFLAGS = `pkg-config --cflags roscpp std_msgs pcl_ros ` -w -O2 
 INCPATH  = 
-LIBS     = $(SUBLIBS) $(ros_libs_nocolon) -L /usr/lib -lboost_system -lpthread
+LIBS     = $(SUBLIBS) $(ros_libs_nocolon) 
 ros_libs = $(shell pkg-config --libs roscpp std_msgs pcl_ros )
 ros_libs_nocolon = $(subst -l:,,$(ros_libs))
 
