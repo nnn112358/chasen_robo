@@ -11,29 +11,26 @@
 #include <std_msgs/Int16.h>
 #include <ros/console.h>
 
+#include <boost/thread.hpp>
+
 using namespace::boost::asio;
 using namespace std;
-//boost::mutex mtx;
 
-// Base serial settings
-const char *PORT = "/dev/ttyUSB0";
-io_service io;
-serial_port port( io, PORT );
+//boost::mutex mtx;
 
 int read_cnt = 0;
 char fbuf[1024] = {0};
 boost::array<char, 256> rbuf;
+string serial_port_name;
+
 
 void mySigintHandler(int sig){
-	string init_cmd01= "m\n";
-	write(port, buffer(init_cmd01));
-
   printf("shutdown catch signal %d \n", sig);
   ros::shutdown();
 }
-
+/*
 void read_callback(const boost::system::error_code& e, std::size_t size){
- // boost::mutex::scoped_lock lk(mtx);
+// boost::mutex::scoped_lock lk(mtx);
 
   for(unsigned int i=0;i<size;i++){
     char c = rbuf.at(i);
@@ -50,7 +47,7 @@ void read_callback(const boost::system::error_code& e, std::size_t size){
   usleep(30*1000);
   port.async_read_some( buffer(rbuf), boost::bind(&read_callback, _1, _2 ));
 }
-
+*/
 
 
 void panspeed_Callback(const std_msgs::Int16::ConstPtr &bottom_msg){
@@ -72,133 +69,122 @@ void panspeed_Callback(const std_msgs::Int16::ConstPtr &bottom_msg){
 	ROS_DEBUG("rosbridge_1_push\n");
 	printf("rosbridge_1_push\n");
 	init_cmd01= "i\n";
-	write(port, buffer(init_cmd01));
-	
 	}
 	else if(data_read==2){
 	ROS_DEBUG("rosbridge_2_push\n");
 	printf("rosbridge_2_push\n");
 	init_cmd01= "o\n";
-
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==3){
 	ROS_DEBUG("rosbridge_3_push\n");
 	printf("rosbridge_3_push\n");
 	init_cmd01= "m\n";
-	write(port, buffer(init_cmd01));
 	}
 
 	else if(data_read==4){
 	ROS_DEBUG("rosbridge_4_push\n");
 	printf("rosbridge_4_push\n");
 	init_cmd01= "1\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==5){
 	ROS_DEBUG("rosbridge_5_push\n");
 	printf("rosbridge_5_push\n");
 	init_cmd01= "2\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==6){
 	ROS_DEBUG("rosbridge_6_push\n");
 	printf("rosbridge_6_push\n");
 	init_cmd01= "3\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==7){
 	ROS_DEBUG("rosbridge_7_push\n");
 	printf("rosbridge_7_push\n");
 	init_cmd01= "4\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==8){
 	ROS_DEBUG("rosbridge_8_push\n");
 	printf("rosbridge_8_push\n");
 	init_cmd01= "5\n";
-	write(port, buffer(init_cmd01));
+
 	}
 	else if(data_read==9){
 	ROS_DEBUG("rosbridge_9_push\n");
 	printf("rosbridge_9_push\n");
 	init_cmd01= "6\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==10){
 	ROS_DEBUG("rosbridge_10_push\n");
 	printf("rosbridge_10_push\n");
 	init_cmd01= "7\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==11){
 	ROS_DEBUG("rosbridge_11_push\n");
 	printf("rosbridge_11_push\n");
 	init_cmd01= "8\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==12){
 	ROS_DEBUG("rosbridge_12_push\n");
 	printf("rosbridge_12_push\n");
 	init_cmd01= "9\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==13){
 	ROS_DEBUG("rosbridge_13_push\n");
 	printf("rosbridge_13_push\n");
 	init_cmd01= "0\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==14){
 	ROS_DEBUG("rosbridge_14_push\n");
 	printf("rosbridge_14_push\n");
 	init_cmd01= "f\n";
-	write(port, buffer(init_cmd01));
 	}
 	else if(data_read==15){
 	ROS_DEBUG("rosbridge_15_push\n");
 	printf("rosbridge_15_push\n");
 	init_cmd01= "g\n";
-	write(port, buffer(init_cmd01));
+	
 	}
 
-	cout<<"send:"<<init_cmd01<<endl;
+	if(init_cmd01!=""){
+		//const char *PORT = "/dev/ttyACM0";
+		io_service io;
+		serial_port port( io, serial_port_name.c_str() );
+		port.set_option(serial_port_base::baud_rate(9600));
+		port.set_option(serial_port_base::character_size(8));
+		port.set_option(serial_port_base::flow_control(serial_port_base::flow_control::none));
+		port.set_option(serial_port_base::parity(serial_port_base::parity::none));
+		port.set_option(serial_port_base::stop_bits(serial_port_base::stop_bits::one));
 
+		cout<<"send:"<<init_cmd01<<endl;
+		write(port, buffer(init_cmd01));
+	}
 
-	usleep(10*1000);
+	usleep(100*1000);
 }
 
 
 
 int main(int argc, char **argv){
-  port.set_option(serial_port_base::baud_rate(9600));
-  port.set_option(serial_port_base::character_size(8));
-  port.set_option(serial_port_base::flow_control(serial_port_base::flow_control::none));
-  port.set_option(serial_port_base::parity(serial_port_base::parity::none));
-  port.set_option(serial_port_base::stop_bits(serial_port_base::stop_bits::one));
 
   //boost::thread thr_io(boost::bind(&io_service::run, &io));
-
-  port.async_read_some( buffer(rbuf), boost::bind(&read_callback, _1, _2 ));
+  //port.async_read_some( buffer(rbuf), boost::bind(&read_callback, _1, _2 ));
 
   ros::init(argc, argv, "robot_rot");
   ros::NodeHandle nh;
+  ros::NodeHandle private_nh("~");
 
-  ros::Subscriber switch_sub = nh.subscribe<std_msgs::Int16>("start", 1, &panspeed_Callback);
+  private_nh.param("serial_port", serial_port_name, std::string ("/dev/ttyACM0"));
+
+  ros::Subscriber switch_sub = nh.subscribe<std_msgs::Int16>("start", 10, &panspeed_Callback);
 
   boost::asio::streambuf response_buf;
   
-  usleep(100*1000);
-
-  ros::Rate r(100.0);
+  
+  ros::Rate r(50.0);
 
   signal(SIGINT, mySigintHandler);
 
-  while(nh.ok()){
-    ros::spinOnce();
-    r.sleep();
-  }
 
+  ros::spin();
 
   return 0;
 

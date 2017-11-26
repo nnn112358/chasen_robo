@@ -5,10 +5,6 @@
  </include>
 
 
- <node pkg="robo_rot" type="robo_rot_node" name="robo_rot">
-    <param name="serial_port" value="/dev/ttyACM0" />
-  </node>
-
 
 </launch>
 
